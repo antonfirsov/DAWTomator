@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Windows.Forms;
+using Windows.Win32;
 namespace DAWTomator;
 
 public partial class AppWindow : Form
@@ -9,37 +9,53 @@ public partial class AppWindow : Form
         InitializeComponent();
         this.CenterToScreen();
 
-        // To provide your own custom icon image, go to:
-        //   1. Project > Properties... > Resources
-        //   2. Change the resource filter to icons
-        //   3. Remove the Default resource and add your own
-        //   4. Modify the next line to Properties.Resources.<YourResource>
-        //this.Icon = Properties.Resources.Default;
         Icon icon = new Icon(Path.Combine(Environment.CurrentDirectory, "Icon.ico"));
         this.Icon = icon;
         this.SystemTrayIcon.Icon = icon;
 
-        // Change the Text property to the name of your application
-        this.SystemTrayIcon.Text = "System Tray App";
+        this.SystemTrayIcon.Text = "🍅 DAWTomator 🍅";
         this.SystemTrayIcon.Visible = true;
 
-        // Modify the right-click menu of your system tray icon here
         ContextMenuStrip menu = new ContextMenuStrip();
         ToolStripItem exit = menu.Items.Add("Exit");
         exit.Click += ContextMenuExit;
 
-        ToolStripItem test = menu.Items.Add("Test");
-        test.Click += Test_Click;
+        //ToolStripItem test = menu.Items.Add("Test");
+        //test.Click += (_, __) => Debug.WriteLine("TEST$");
 
         this.SystemTrayIcon.ContextMenuStrip = menu;
 
         this.Resize += WindowResize;
         this.FormClosing += WindowClosing;
+        InitDevicesListboxListbox();
     }
 
-    private void Test_Click(object? sender, EventArgs e)
+    private void InitDevicesListboxListbox()
     {
-        Debug.WriteLine("TEST!");
+        string[] keywords = tbFilter.Text.Split(',').Select(s => s.Trim()).ToArray();
+        DeviceInfo[] devices = HardwareManager.GetDevices()
+            .FilterKeywords(keywords)
+            .OrderBy(d => d.ToString())
+            .ToArray();
+
+        devicesListView.ItemCheck -= devicesListView_ItemCheck;
+        devicesListView.Items.Clear();
+        foreach (DeviceInfo device in devices)
+        {
+            ListViewItem item = new ListViewItem(device.ToString())
+            {
+                Checked = device.Enabled == true,
+                Tag = device
+            };
+            devicesListView.Items.Add(item);
+        }
+        devicesListView.AutoResizeColumn(0, ColumnHeaderAutoResizeStyle.ColumnContent);
+        devicesListView.ItemCheck += devicesListView_ItemCheck;
+    }
+
+    private void FilterClick(object? sender, EventArgs e)
+    {
+        InitDevicesListboxListbox();
     }
 
     private void SystemTrayIconDoubleClick(object? sender, MouseEventArgs e)
@@ -68,5 +84,22 @@ public partial class AppWindow : Form
     {
         e.Cancel = true;
         this.Hide();
+    }
+
+    private void devicesListView_ItemCheck(object? sender, ItemCheckEventArgs e)
+    {
+        DeviceInfo info = (DeviceInfo)devicesListView.Items[e.Index].Tag!;
+        if (e.NewValue != CheckState.Indeterminate && e.CurrentValue != e.NewValue)
+        {
+            try
+            {
+                HardwareManager.SetEnabled(info, e.NewValue == CheckState.Checked);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                MessageBox.Show($"Access denied on {info}!");
+                e.NewValue = CheckState.Indeterminate;
+            }
+        }
     }
 }

@@ -1,0 +1,9 @@
+﻿SetupDiGetClassDevsW
+SetupDiEnumDeviceInfo
+SetupDiGetDeviceRegistryPropertyW
+SP_PROPCHANGE_PARAMS
+SetupDiGetClassInstallParamsW
+SetupDiSetClassInstallParamsW
+SetupDiChangeState
+CM_Get_Device_ID
+CM_Get_DevNode_Status
