@@ -24,6 +24,17 @@ public partial class AppWindow : Form
     public AppWindow()
     {
         InitializeComponent();
+
+        string defaultDevicesFile = Path.Combine(Environment.CurrentDirectory, "DefaultDevices.csv");
+        if (File.Exists(defaultDevicesFile))
+        {
+            tbFilter.Text = File.ReadAllText(defaultDevicesFile);
+        }
+        else
+        {
+            tbFilter.Text = "intel(r) wi-fi";
+        }
+
         this.CenterToScreen();
 
         this.Icon = Resources.Icon;

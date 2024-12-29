@@ -62,7 +62,6 @@ partial class AppWindow
         tbFilter.Name = "tbFilter";
         tbFilter.Size = new Size(696, 23);
         tbFilter.TabIndex = 2;
-        tbFilter.Text = "intel(r) wireless bluetooth,intel(r) wi-fi,microsoft ac adapter,microsoft acpi-compliant control,realtek pcie gbe";
         // 
         // panel1
         // 

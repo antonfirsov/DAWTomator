@@ -39,6 +39,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="DefaultDevices.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
