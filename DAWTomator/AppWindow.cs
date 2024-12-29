@@ -48,6 +48,9 @@ public partial class AppWindow : Form
         InitDeviceLists();
 
         this.SystemTrayIcon.ContextMenuStrip = systemTrayMenu;
+
+        this.WindowState = FormWindowState.Minimized;
+        this.Hide();
     }
 
     private DeviceInfo[] GetDevices()
