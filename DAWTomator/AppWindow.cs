@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using Windows.Win32;
+﻿using DAWTomator.Properties;
+
 namespace DAWTomator;
 
 public partial class AppWindow : Form
@@ -9,9 +9,8 @@ public partial class AppWindow : Form
         InitializeComponent();
         this.CenterToScreen();
 
-        Icon icon = new Icon(Path.Combine(Environment.CurrentDirectory, "Icon.ico"));
-        this.Icon = icon;
-        this.SystemTrayIcon.Icon = icon;
+        this.Icon = Resources.Icon;
+        this.SystemTrayIcon.Icon = Resources.Icon;
 
         this.SystemTrayIcon.Text = "🍅 DAWTomator 🍅";
         this.SystemTrayIcon.Visible = true;
