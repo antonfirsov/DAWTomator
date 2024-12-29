@@ -35,6 +35,7 @@ partial class AppWindow
         panel1 = new Panel();
         devicesListView = new ListView();
         theColumn = new ColumnHeader();
+        systemTrayMenu = new ContextMenuStrip(components);
         panel1.SuspendLayout();
         SuspendLayout();
         // 
@@ -87,6 +88,11 @@ partial class AppWindow
         devicesListView.View = View.Details;
         devicesListView.ItemCheck += devicesListView_ItemCheck;
         // 
+        // systemTrayMenu
+        // 
+        systemTrayMenu.Name = "systemTrayMenu";
+        systemTrayMenu.Size = new Size(61, 4);
+        // 
         // AppWindow
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
@@ -109,5 +115,6 @@ partial class AppWindow
     private Panel panel1;
     private ListView devicesListView;
     private ColumnHeader theColumn;
+    private ContextMenuStrip systemTrayMenu;
 }
 

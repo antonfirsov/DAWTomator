@@ -4,6 +4,23 @@ namespace DAWTomator;
 
 public partial class AppWindow : Form
 {
+    private record class DeviceItem(DeviceInfo Device, ListViewItem ListViewItem, ToolStripMenuItem ToolStripItem)
+    {
+        public bool TrySetEnabled(bool enabled)
+        {
+            try
+            {
+                HardwareManager.SetEnabled(Device, enabled);
+                return true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                MessageBox.Show($"Access denied on {Device}!");
+                return false;
+            }
+        }
+    }
+
     public AppWindow()
     {
         InitializeComponent();
@@ -15,46 +32,59 @@ public partial class AppWindow : Form
         this.SystemTrayIcon.Text = "🍅 DAWTomator 🍅";
         this.SystemTrayIcon.Visible = true;
 
-        ContextMenuStrip menu = new ContextMenuStrip();
-        ToolStripItem exit = menu.Items.Add("Exit");
-        exit.Click += ContextMenuExit;
-
-        //ToolStripItem test = menu.Items.Add("Test");
-        //test.Click += (_, __) => Debug.WriteLine("TEST$");
-
-        this.SystemTrayIcon.ContextMenuStrip = menu;
-
         this.Resize += WindowResize;
         this.FormClosing += WindowClosing;
-        InitDevicesListboxListbox();
+        InitDeviceLists();
+
+        this.SystemTrayIcon.ContextMenuStrip = systemTrayMenu;
     }
 
-    private void InitDevicesListboxListbox()
+    private DeviceInfo[] GetDevices()
     {
         string[] keywords = tbFilter.Text.Split(',').Select(s => s.Trim()).ToArray();
-        DeviceInfo[] devices = HardwareManager.GetDevices()
+        return HardwareManager.GetDevices()
             .FilterKeywords(keywords)
             .OrderBy(d => d.ToString())
             .ToArray();
+    }
 
+    private void InitDeviceLists()
+    {
         devicesListView.ItemCheck -= devicesListView_ItemCheck;
         devicesListView.Items.Clear();
-        foreach (DeviceInfo device in devices)
+        systemTrayMenu.Items.Clear();
+
+        foreach (DeviceInfo device in GetDevices())
         {
-            ListViewItem item = new ListViewItem(device.ToString())
+            string text = device.ToString();
+            ListViewItem listViewItem = new ListViewItem(text)
             {
-                Checked = device.Enabled == true,
-                Tag = device
+                Checked = device.Enabled == true
             };
-            devicesListView.Items.Add(item);
+            ToolStripMenuItem toolStripItem = (ToolStripMenuItem)systemTrayMenu.Items.Add(text);
+            toolStripItem.Checked = device.Enabled == true;
+            
+            DeviceItem deviceItem = new(device, listViewItem, toolStripItem);
+            listViewItem.Tag = deviceItem;
+            toolStripItem.Tag = deviceItem;
+            toolStripItem.DisplayStyle = ToolStripItemDisplayStyle.Text;
+
+            toolStripItem.Click += this.ToolStripItemClicked;
+
+            devicesListView.Items.Add(listViewItem);
+            
         }
         devicesListView.AutoResizeColumn(0, ColumnHeaderAutoResizeStyle.ColumnContent);
         devicesListView.ItemCheck += devicesListView_ItemCheck;
+
+        systemTrayMenu.Items.Add("-");
+        ToolStripItem exit = systemTrayMenu.Items.Add("Exit");
+        exit.Click += ContextMenuExit;
     }
 
     private void FilterClick(object? sender, EventArgs e)
     {
-        InitDevicesListboxListbox();
+        InitDeviceLists();
     }
 
     private void SystemTrayIconDoubleClick(object? sender, MouseEventArgs e)
@@ -85,19 +115,30 @@ public partial class AppWindow : Form
         this.Hide();
     }
 
+    private void ToolStripItemClicked(object? sender, EventArgs e)
+    {
+        ToolStripMenuItem btn = (ToolStripMenuItem)sender!;
+        DeviceItem deviceItem = (DeviceItem)btn.Tag!;
+        bool enabled = !btn.Checked;
+
+        if (deviceItem.TrySetEnabled(enabled))
+        {
+            btn.Checked = enabled;
+            devicesListView.ItemCheck -= devicesListView_ItemCheck;
+            deviceItem.ListViewItem.Checked = enabled;
+            devicesListView.ItemCheck += devicesListView_ItemCheck;
+        }
+    }
+
     private void devicesListView_ItemCheck(object? sender, ItemCheckEventArgs e)
     {
-        DeviceInfo info = (DeviceInfo)devicesListView.Items[e.Index].Tag!;
+        DeviceItem item = (DeviceItem)devicesListView.Items[e.Index].Tag!;
         if (e.NewValue != CheckState.Indeterminate && e.CurrentValue != e.NewValue)
         {
-            try
+            bool enabled = e.NewValue == CheckState.Checked;
+            if (item.TrySetEnabled(enabled))
             {
-                HardwareManager.SetEnabled(info, e.NewValue == CheckState.Checked);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                MessageBox.Show($"Access denied on {info}!");
-                e.NewValue = CheckState.Indeterminate;
+                item.ToolStripItem.Checked = enabled;
             }
         }
     }
