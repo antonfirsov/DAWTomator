@@ -1,5 +1,5 @@
 # DAW (au)Tomator
 
-A silly tool to turn handpicked devices (device drivers) on and off quickly from the system tray; typically network devices. This is a common task when balancing DPC latency or doing other dirty stuff on a DAW PC.
+<img width="562" alt="image" src="https://github.com/user-attachments/assets/3d4e298b-253a-47cf-b368-0191c3c61361" />
 
-I wonder if this tool is useful for anyone else?
+A silly tool to turn handpicked device drivers on and off quickly from the system tray, because windows Device Manager sucks. Handy on a DAW PC.
